@@ -1,0 +1,14 @@
+@import "tailwindcss";
+html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
+body { font-family: Inter, system-ui, sans-serif; background: #fbfaf8; color: #1c1b22; overflow-x: hidden; }
+:focus-visible { outline: 3px solid #6366f1; outline-offset: 2px; }
+@utility btn { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed; }
+@utility btn-p { @apply btn bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm; }
+@utility btn-s { @apply btn border border-stone-300 bg-white hover:bg-stone-50; }
+@utility card { @apply rounded-2xl border border-stone-200 bg-white shadow-sm; }
+@utility inp { @apply min-h-11 w-full rounded-lg border border-stone-300 bg-white px-3; }
+.bar { animation: wave 1.4s ease-in-out infinite; transform-origin: center; }
+.slide { animation: slide 1.4s linear infinite; }
+@keyframes wave { 50% { transform: scaleY(.45); } }
+@keyframes slide { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
+@media (prefers-reduced-motion: reduce) { .bar, .slide { animation: none !important; } html { scroll-behavior: auto; } }
