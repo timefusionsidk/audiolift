@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AudioWaveform, Download, Layers, Loader2, MonitorSmartphone, RotateCcw, Scissors, ShieldCheck, Stamp, Trash2, Upload, UserX, X } from 'lucide-react';
 import { FORMATS, Fmt, Opts, cancelJob, extract, warm } from './engine';
 
@@ -41,6 +41,7 @@ function AdSlot({ slot, label = 'Advertisement' }: { slot?: string; label?: stri
 /* ---------- Converter ---------- */
 type Res = { url: string; size: number; name: string; dur: number };
 function Converter() {
+  const fileInput = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [url, setUrl] = useState('');
   const [meta, setMeta] = useState<{ dur: number; w: number; h: number } | null>(null);
@@ -58,6 +59,11 @@ function Converter() {
   useEffect(() => () => { if (url) URL.revokeObjectURL(url); }, [url]);
   useEffect(() => () => { if (res) URL.revokeObjectURL(res.url); }, [res]);
   useEffect(() => () => cancelJob(), []);
+  useEffect(() => {
+    const openPicker = () => fileInput.current?.click();
+    window.addEventListener('audiolift-open-picker', openPicker);
+    return () => window.removeEventListener('audiolift-open-picker', openPicker);
+  }, []);
 
   const reset = () => { if (busy) cancelJob(); setFile(null); setUrl(''); setMeta(null); setNoPrev(false); setRes(null); setErr(''); setBusy(false); setPct(null); };
   const pick = (f?: File) => {
@@ -111,7 +117,7 @@ function Converter() {
         <span className="btn-p">Choose Video</span>
         <span className="text-sm text-stone-500">MP4, MOV, WEBM, MKV, AVI and more. Under 500 MB recommended; larger files may fail on phones.</span>
         <span className="flex items-center gap-1.5 text-sm font-medium text-indigo-700"><ShieldCheck size={16} aria-hidden />Your files never leave your device. All processing happens privately in your browser.</span>
-        <input type="file" className="sr-only" accept="video/*,.mkv,.avi,.mpeg,.mpg,.m4v" onChange={(e) => pick(e.target.files?.[0])} />
+        <input ref={fileInput} type="file" className="sr-only" accept="video/*,.mkv,.avi,.mpeg,.mpg,.m4v" onChange={(e) => pick(e.target.files?.[0])} />
       </label>
     </div>
   );
@@ -207,7 +213,7 @@ function Home() {
       <nav aria-label="Main" className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2">
         <a href="/" className="flex min-h-11 items-center gap-2 text-lg font-extrabold"><AudioWaveform className="text-indigo-600" />AudioLift</a>
         <div className="hidden items-center gap-5 text-sm font-medium md:flex">{[['Extract Audio', '#extract'], ['How It Works', '#how'], ['Formats', '#formats'], ['FAQ', '#faq'], ['Privacy', '/privacy']].map(([l, h]) => <a key={l} href={h} className="hover:text-indigo-600">{l}</a>)}</div>
-        <a href="#extract" className="btn-p !min-h-11 text-sm">Choose Video</a>
+        <button type="button" className="btn-p !min-h-11 text-sm" onClick={() => { document.getElementById('extract')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); window.setTimeout(() => window.dispatchEvent(new Event('audiolift-open-picker')), 250); }}>Choose Video</button>
       </nav>
     </header>
     <main>
