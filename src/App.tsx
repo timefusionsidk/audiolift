@@ -65,12 +65,19 @@ function Converter() {
     return () => window.removeEventListener('audiolift-open-picker', openPicker);
   }, []);
 
-  const reset = () => { if (busy) cancelJob(); setFile(null); setUrl(''); setMeta(null); setNoPrev(false); setRes(null); setErr(''); setBusy(false); setPct(null); };
+  const reset = () => {
+    if (busy) cancelJob();
+    if (url) URL.revokeObjectURL(url);
+    if (res) URL.revokeObjectURL(res.url);
+    if (fileInput.current) fileInput.current.value = '';
+    setFile(null); setUrl(''); setMeta(null); setNoPrev(false); setRes(null); setErr(''); setBusy(false); setPct(null);
+  };
   const pick = (f?: File) => {
     if (!f) return;
     reset();
     if (!(EXTS.includes(ext(f.name)) || f.type.startsWith('video/'))) return setErr('Please select a supported video file.');
     if (!f.size) return setErr('This file is empty. Please choose another video.');
+    if (f.size > 2_000_000_000) return setErr('This video is over 2 GB and is unlikely to work reliably in a browser. Please choose a smaller file.');
     setFile(f); setUrl(URL.createObjectURL(f)); warm();
   };
 
@@ -212,7 +219,7 @@ function Home() {
     <header className="sticky top-0 z-20 border-b border-stone-200 bg-[#fbfaf8]/95 backdrop-blur">
       <nav aria-label="Main" className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2">
         <a href="/" className="flex min-h-11 items-center gap-2 text-lg font-extrabold"><AudioWaveform className="text-indigo-600" />AudioLift</a>
-        <div className="hidden items-center gap-5 text-sm font-medium md:flex">{[['Extract Audio', '#extract'], ['How It Works', '#how'], ['Formats', '#formats'], ['FAQ', '#faq'], ['Privacy', '/privacy']].map(([l, h]) => <a key={l} href={h} className="hover:text-indigo-600">{l}</a>)}</div>
+        <div className="hidden items-center gap-5 text-sm font-medium md:flex">{[['Extract Audio', '#extract'], ['How It Works', '#how'], ['Formats', '#formats'], ['FAQ', '#faq'], ['Privacy', '/privacy'], ['Contact', '/contact']].map(([l, h]) => <a key={l} href={h} className="hover:text-indigo-600">{l}</a>)}</div>
         <button type="button" className="btn-p !min-h-11 text-sm" onClick={() => { document.getElementById('extract')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); window.setTimeout(() => window.dispatchEvent(new Event('audiolift-open-picker')), 250); }}>Choose Video</button>
       </nav>
     </header>
@@ -244,21 +251,33 @@ function Home() {
 }
 
 const Footer = () => <footer className="border-t border-stone-200 py-8 text-center text-sm text-stone-600">
-  <p>© {new Date().getFullYear()} AudioLift · <a className="underline" href="/privacy">Privacy Policy</a> · <a className="underline" href="/terms">Terms of Use</a> · Contact: contact@audiolift.example</p>
+  <p>© {new Date().getFullYear()} AudioLift · <a className="underline" href="/privacy">Privacy Policy</a> · <a className="underline" href="/terms">Terms of Use</a> · <a className="underline" href="/contact">Contact</a></p>
   <p className="mx-auto mt-2 max-w-xl px-4">Copyright: only process media you own or have permission to use. AudioLift does not download videos from third-party platforms.</p></footer>;
 
-function Legal({ kind }: { kind: string }) {
+function Legal({ kind }: { kind: 'privacy' | 'terms' }) {
   const priv = kind === 'privacy';
   const items = priv
-    ? ['Video and audio files are processed locally in your browser.', 'Files are not intentionally uploaded to AudioLift servers and are not stored in any database.', 'Refreshing or closing the page clears the active project.', 'Advertising and analytics providers, if enabled, may process ordinary website data under their own policies.', 'You are responsible for having permission to process the media you select.']
+    ? ['Video and audio files are processed locally in your browser.', 'Files are not intentionally uploaded to AudioLift servers and are not stored in any database.', 'Refreshing or closing the page clears the active project.', 'When advertising is enabled, advertising providers such as Google may use cookies, device identifiers, and similar technologies to show and measure ads. Their use of data is governed by their own privacy policies and available ad controls.', 'AudioLift does not sell your media files. You are responsible for having permission to process the media you select.']
     : ['AudioLift is provided free and “as is”, without warranties.', 'Only process videos you own or have permission to use.', 'AudioLift does not download videos from third-party platforms.', 'Very large files may fail depending on your device and browser.', 'We may change or discontinue the service at any time.'];
   return (<><main className="mx-auto max-w-3xl px-4 py-16"><a href="/" className="text-indigo-700 underline">← Back to AudioLift</a>
     <h1 className="mt-4 text-4xl font-extrabold">{priv ? 'Privacy Policy' : 'Terms of Use'}</h1>
     <ul className="mt-6 list-disc space-y-3 pl-5 text-stone-700">{items.map((t) => <li key={t}>{t}</li>)}</ul>
-    <p className="mt-6 text-sm text-stone-500">Template text: have it reviewed for your jurisdiction and ad/analytics providers before launch.</p></main><Footer /></>);
+    <p className="mt-6 text-sm text-stone-500">Last updated: September 27, 2026. For questions, use the <a className="underline" href="/contact">Contact page</a>.</p></main><Footer /></>);
+}
+
+function Contact() {
+  return <><main className="mx-auto max-w-3xl px-4 py-16"><a href="/" className="text-indigo-700 underline">← Back to AudioLift</a>
+    <h1 className="mt-4 text-4xl font-extrabold">Contact AudioLift</h1>
+    <p className="mt-4 text-stone-700">Need help, found a bug, or have a copyright concern? Send a message through the project’s support form. Please do not attach private media files.</p>
+    <a className="btn-p mt-6" href="https://github.com/timefusionsidk/audiolift/issues/new" target="_blank" rel="noreferrer">Contact project support</a>
+    <h2 className="mt-10 text-2xl font-bold">Before you contact us</h2>
+    <ul className="mt-3 list-disc space-y-2 pl-5 text-stone-700"><li>Include your browser, device type, video format, and the error message.</li><li>Do not share copyrighted or sensitive video content.</li><li>For conversion problems, try a smaller file or a different output format first.</li></ul>
+  </main><Footer /></>;
 }
 
 export default function App() {
   const p = location.pathname.replace(/\/$/, '');
-  return p === '/privacy' || p === '/terms' ? <Legal kind={p.slice(1)} /> : <Home />;
+  if (p === '/privacy' || p === '/terms') return <Legal kind={p.slice(1) as 'privacy' | 'terms'} />;
+  if (p === '/contact') return <Contact />;
+  return <Home />;
 }
