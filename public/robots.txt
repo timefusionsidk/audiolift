@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://audiolift.example/sitemap.xml
+Sitemap: https://audiolift.vercel.app/sitemap.xml

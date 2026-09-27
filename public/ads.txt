@@ -1,0 +1,2 @@
+# Replace pub-REPLACE_WITH_YOUR_ID with the publisher ID shown in your AdSense account before publishing ads.
+google.com, pub-REPLACE_WITH_YOUR_ID, DIRECT, f08c47fec0942fa0
