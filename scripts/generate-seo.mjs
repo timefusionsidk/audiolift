@@ -1,6 +1,6 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const raw = process.env.SITE_URL || process.env.VITE_SITE_URL || 'https://audiolift.vercel.app';
+const raw = process.env.SITE_URL || process.env.VITE_SITE_URL || 'https://audiolift.timefusionsidk.com';
 const origin = raw.replace(/\/$/, '');
 if (!/^https:\/\/[^/]+$/i.test(origin)) throw new Error('SITE_URL must be a full HTTPS origin without a path.');
 
@@ -10,5 +10,5 @@ writeFileSync('public/sitemap.xml', sitemap);
 writeFileSync('public/robots.txt', `User-agent: *\nAllow: /\nSitemap: ${origin}/sitemap.xml\n`);
 
 const index = readFileSync('index.html', 'utf8')
-  .replaceAll('https://audiolift.vercel.app/', `${origin}/`);
+  .replaceAll('https://audiolift.timefusionsidk.com/', `${origin}/`);
 writeFileSync('index.html', index);
