@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { AudioWaveform, Download, Layers, Loader2, MonitorSmartphone, RotateCcw, Scissors, ShieldCheck, Stamp, Trash2, Upload, UserX, X } from 'lucide-react';
-import { FORMATS, Fmt, Opts, cancelJob, extract, warm } from './engine';
+import { FORMATS, Fmt, Opts, cancelJob, extract } from './engine';
 
 const EXTS = ['mp4', 'mov', 'webm', 'mkv', 'avi', 'm4v', 'mpeg', 'mpg'];
 const ext = (n: string) => n.split('.').pop()?.toLowerCase() ?? '';
@@ -65,20 +65,27 @@ function Converter() {
     return () => window.removeEventListener('audiolift-open-picker', openPicker);
   }, []);
 
-  const reset = () => {
+  const reset = (clearPicker = true) => {
     if (busy) cancelJob();
     if (url) URL.revokeObjectURL(url);
     if (res) URL.revokeObjectURL(res.url);
-    if (fileInput.current) fileInput.current.value = '';
+    if (clearPicker && fileInput.current) fileInput.current.value = '';
     setFile(null); setUrl(''); setMeta(null); setNoPrev(false); setRes(null); setErr(''); setBusy(false); setPct(null);
   };
   const pick = (f?: File) => {
     if (!f) return;
-    reset();
+    // Do not clear the active input while iOS is finishing its picker callback.
+    // Safari can otherwise discard the selected video before React receives it.
+    reset(false);
     if (!(EXTS.includes(ext(f.name)) || f.type.startsWith('video/'))) return setErr('Please select a supported video file.');
     if (!f.size) return setErr('This file is empty. Please choose another video.');
     if (f.size > 2_000_000_000) return setErr('This video is over 2 GB and is unlikely to work reliably in a browser. Please choose a smaller file.');
-    setFile(f); setUrl(URL.createObjectURL(f)); warm();
+    try {
+      setFile(f);
+      setUrl(URL.createObjectURL(f));
+    } catch {
+      setErr('Your browser could not open this video. Try choosing the original file from Files, or use a smaller video.');
+    }
   };
 
   const dur = meta ? rg[1] - rg[0] : 0;
@@ -106,7 +113,7 @@ function Converter() {
       <p>{err}</p>
       <div className="mt-3 flex flex-wrap gap-2">
         {file && !busy && <button className="btn-s !min-h-11 text-sm" onClick={go}><RotateCcw size={16} />Retry</button>}
-        <label className="btn-s cursor-pointer text-sm">Choose another file<input type="file" hidden accept="video/*,.mkv,.avi,.mpeg,.mpg,.m4v" onChange={(e) => pick(e.target.files?.[0])} /></label>
+        <label className="btn-s cursor-pointer text-sm">Choose another file<input className="file-picker" type="file" accept="video/*,.mkv,.avi,.mpeg,.mpg,.m4v" onClick={(e) => { e.currentTarget.value = ''; }} onChange={(e) => pick(e.target.files?.[0])} /></label>
       </div>
     </div>
   );
@@ -124,7 +131,7 @@ function Converter() {
         <span className="btn-p">Choose Video</span>
         <span className="text-sm text-stone-500">MP4, MOV, WEBM, MKV, AVI and more. Under 500 MB recommended; larger files may fail on phones.</span>
         <span className="flex items-center gap-1.5 text-sm font-medium text-indigo-700"><ShieldCheck size={16} aria-hidden />Your files never leave your device. All processing happens privately in your browser.</span>
-        <input ref={fileInput} type="file" className="sr-only" accept="video/*,.mkv,.avi,.mpeg,.mpg,.m4v" onChange={(e) => pick(e.target.files?.[0])} />
+        <input ref={fileInput} type="file" className="file-picker" accept="video/*,.mkv,.avi,.mpeg,.mpg,.m4v" onClick={(e) => { e.currentTarget.value = ''; }} onChange={(e) => pick(e.target.files?.[0])} />
       </label>
     </div>
   );
@@ -139,7 +146,7 @@ function Converter() {
       <div className="mt-5 flex flex-col gap-3 sm:flex-row">
         <a className="btn-p" href={res.url} download={res.name}><Download size={18} />Download</a>
         <button className="btn-s" onClick={() => setRes(null)}>Change Settings</button>
-        <button className="btn-s" onClick={reset}>Convert Another Video</button>
+        <button className="btn-s" onClick={() => reset()}>Convert Another Video</button>
       </div>
       <AdSlot slot={import.meta.env.VITE_AD_SLOT_RESULT} />
     </div>
@@ -157,8 +164,8 @@ function Converter() {
           <dl className="mt-4 grid grid-cols-2 gap-2 text-sm">
             {[['Name', file.name], ['Type', file.type || ext(file.name).toUpperCase()], ['Size', B(file.size)], ['Duration', meta ? T(meta.dur) : 'Unknown'], ['Resolution', meta?.w ? `${meta.w}×${meta.h}` : 'Unknown'], ['Audio track', 'Checked during extraction'], ['Est. output', est ? '≈ ' + B(est) : '—']].map(([k, v]) => <div key={k} className="min-w-0"><dt className="text-stone-500">{k}</dt><dd className="truncate font-medium" title={v}>{v}</dd></div>)}
           </dl>
-          <button className="btn-s mt-3 text-sm" onClick={reset} disabled={busy}><X size={16} />Remove file</button>{' '}
-          <label className="btn-s mt-3 cursor-pointer text-sm">Replace file<input type="file" hidden accept="video/*,.mkv,.avi,.mpeg,.mpg,.m4v" onChange={(e) => pick(e.target.files?.[0])} /></label>
+          <button className="btn-s mt-3 text-sm" onClick={() => reset()} disabled={busy}><X size={16} />Remove file</button>{' '}
+          <label className="btn-s mt-3 cursor-pointer text-sm">Replace file<input className="file-picker" type="file" accept="video/*,.mkv,.avi,.mpeg,.mpg,.m4v" onClick={(e) => { e.currentTarget.value = ''; }} onChange={(e) => pick(e.target.files?.[0])} /></label>
         </div>
         <div className="min-w-0 space-y-4">
           <fieldset disabled={busy} className="space-y-4">
