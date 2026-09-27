@@ -276,7 +276,7 @@ function Contact() {
   return <><main className="mx-auto max-w-3xl px-4 py-16"><a href="/" className="text-indigo-700 underline">← Back to AudioLift</a>
     <h1 className="mt-4 text-4xl font-extrabold">Contact AudioLift</h1>
     <p className="mt-4 text-stone-700">Need help, found a bug, or have a copyright concern? Send a message through the project’s support form. Please do not attach private media files.</p>
-    <a className="btn-p mt-6" href="https://github.com/timefusionsidk/audiolift/issues/new" target="_blank" rel="noreferrer">Contact project support</a>
+    <a className="btn-p mt-6" href="mailto:timefusions.idk@gmail.com">timefusions.idk@gmail.com</a>
     <h2 className="mt-10 text-2xl font-bold">Before you contact us</h2>
     <ul className="mt-3 list-disc space-y-2 pl-5 text-stone-700"><li>Include your browser, device type, video format, and the error message.</li><li>Do not share copyrighted or sensitive video content.</li><li>For conversion problems, try a smaller file or a different output format first.</li></ul>
   </main><Footer /></>;
