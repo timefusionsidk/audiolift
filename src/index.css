@@ -1,6 +1,7 @@
 @import "tailwindcss";
 html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
 body { font-family: Inter, system-ui, sans-serif; background: #fbfaf8; color: #1c1b22; overflow-x: hidden; }
+.file-picker { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
 :focus-visible { outline: 3px solid #6366f1; outline-offset: 2px; }
 @utility btn { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed; }
 @utility btn-p { @apply btn bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm; }
